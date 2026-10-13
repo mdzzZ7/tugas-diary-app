@@ -4,7 +4,7 @@ Project ini merupakan implementasi dari tugas Praktikum Mobile Programming, berf
 
 ## Informasi Mahasiswa
 - **Nama:** Ahmad Yusuf Abdhillah
-- **NIM:** [Isi NIM di sini]
+- **NIM:** 2430511042
 - **Program Studi:** Teknik Informatika
 - **Universitas:** Universitas Muhammadiyah Sukabumi
 
