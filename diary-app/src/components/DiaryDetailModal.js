@@ -1,71 +1,83 @@
 import React from 'react';
-import { Modal, View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import { COLORS, SPACE, RADIUS, TYPO, FONTS } from '../styles/tokens';
+import { Modal, View, Text, Image, StyleSheet, Pressable, SafeAreaView } from 'react-native';
+import { COLORS } from '../styles/tokens'; // Cukup ambil COLORS saja
 
 export default function DiaryDetailModal({ visible, onClose, entry }) {
   if (!entry) return null;
-  const { title, date, body, heroUri } = entry;
 
   return (
-    <Modal visible={visible} animationType="slide">
-      <View style={styles.container}>
-        <Image source={{ uri: heroUri || entry.moodUri }} style={styles.hero} />
-        <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.date}>{date}</Text>
-          <Text style={styles.body}>{body}</Text>
+    <Modal 
+      visible={visible} 
+      animationType="slide"
+      onRequestClose={onClose} // Wajib ada agar tombol back Android berfungsi
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          {/* Menggunakan fixed height 220 menggantikan aspectRatio biar aman di semua HP */}
+          <Image source={entry.moodImage} style={styles.hero} resizeMode="cover" />
           
-          <Pressable onPress={onClose} style={styles.button}>
-            <Text style={styles.buttonText}>Tutup</Text>
-          </Pressable>
+          <View style={styles.content}>
+            <Text style={styles.title}>{entry.title}</Text>
+            <Text style={styles.date}>{entry.date}</Text>
+            <Text style={styles.body}>{entry.body}</Text>
+            
+            <Pressable onPress={onClose} style={styles.button}>
+              <Text style={styles.buttonText}>Tutup</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+  },
   container: { 
     flex: 1, 
     backgroundColor: COLORS.surface 
   },
   hero: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    backgroundColor: COLORS.accentLight,
-    borderBottomLeftRadius: RADIUS.card,
-    borderBottomRightRadius: RADIUS.card,
+    height: 220, 
+    backgroundColor: '#eef2ff',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
-  content: { padding: SPACE.l, gap: SPACE.s },
+  content: { 
+    padding: 24, 
+  },
   title: { 
-    fontFamily: FONTS.bold,
+    fontWeight: 'bold', 
     fontSize: 22, 
-    color: COLORS.text 
+    color: '#1e293b',
+    marginBottom: 6,
   },
   date: { 
-    fontFamily: FONTS.semiBold,
-    fontSize: TYPO.caption, 
-    color: COLORS.muted, 
-    marginBottom: SPACE.s 
+    fontWeight: '600',
+    fontSize: 12, 
+    color: '#64748b', 
+    marginBottom: 20 
   },
   body: { 
-    fontFamily: FONTS.regular,
-    fontSize: TYPO.body, 
-    color: COLORS.text, 
-    lineHeight: 22 
+    fontSize: 15, 
+    color: '#1e293b', 
+    lineHeight: 24,
+    marginBottom: 40, // Pengganti gap
   },
   button: {
-    marginTop: SPACE.xl, 
-    paddingVertical: SPACE.m,
-    paddingHorizontal: SPACE.l,
-    borderRadius: RADIUS.button,
+    paddingVertical: 14,
+    borderRadius: 12,
     backgroundColor: COLORS.accent, 
     alignItems: 'center',
     elevation: 2,
   },
   buttonText: { 
-    fontFamily: FONTS.bold,
+    fontWeight: 'bold', 
     color: '#FFFFFF', 
-    fontSize: TYPO.body 
+    fontSize: 16 
   },
 });

@@ -1,102 +1,106 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { COLORS, SPACE } from '../styles/tokens';
+import { Ionicons } from '@expo/vector-icons'; // Tambahan ikon buat empty state
 import DiaryCard from '../components/DiaryCard';
 import DiaryDetailModal from '../components/DiaryDetailModal';
-import { COLORS, SPACE, TYPO, BREAKPOINTS, FONTS } from '../styles/tokens';
+import SearchBar from '../components/SearchBar';
+import EntryForm from '../components/EntryForm';
 
-const DATA = [
+const INITIAL_ENTRIES = [
   {
     id: 1,
     title: 'Pagi yang Tenang',
-    date: '2025-10-06',
-    preview: 'Bangun lebih pagi dan menyeduh kopi. Rasanya sangat tenang sebelum rutinitas dimulai.',
-    body: 'Catatan lengkap hari ini: Bangun lebih pagi dan menyeduh kopi. Rasanya sangat tenang sebelum rutinitas dimulai. Sempat membaca buku beberapa halaman.',
-    moodUri: 'https://picsum.photos/seed/happy/200',
-    heroUri: 'https://picsum.photos/seed/happyhero/800/450',
+    date: '2026-10-18',
+    preview: 'Jalan pagi 20 menit dan menikmati udara segar.',
+    body: 'Hari ini aku bangun lebih pagi dan berjalan kaki selama 20 menit.',
+    moodImage: require('../../assets/moods/happy.jpg'),
   },
   {
     id: 2,
     title: 'Produktif di Kampus',
-    date: '2025-10-05',
-    preview: 'Menyelesaikan modul React Native. Lumayan menantang tapi akhirnya berhasil juga bikin modalnya.',
-    body: 'Kemajuan proyek: Menyelesaikan modul React Native. Lumayan menantang tapi akhirnya berhasil juga bikin modalnya. Tinggal merapikan desain UI.',
-    moodUri: 'https://picsum.photos/seed/focus/200',
-    heroUri: 'https://picsum.photos/seed/focushero/800/450',
+    date: '2026-10-17',
+    preview: 'Menyelesaikan modul praktikum dan berdiskusi dengan tim.',
+    body: 'Hari ini cukup produktif karena beberapa target perkuliahan selesai.',
+    moodImage: require('../../assets/moods/focus.jpg'),
   },
   {
     id: 3,
     title: 'Senja di Taman',
-    date: '2025-10-04',
-    preview: 'Jalan-jalan sore sebentar mencari angin. Cuacanya pas banget buat refleksi diri.',
-    body: 'Refleksi singkat: Jalan-jalan sore sebentar mencari angin di taman dekat rumah. Cuacanya pas banget buat sekadar duduk santai dan me-refresh pikiran.',
-    moodUri: 'https://picsum.photos/seed/calm/200',
-    heroUri: 'https://picsum.photos/seed/calmhero/800/450',
+    date: '2026-10-16',
+    preview: 'Membaca buku sambil menikmati suasana senja.',
+    body: 'Sore ini saya menikmati waktu di taman sambil membaca buku.',
+    moodImage: require('../../assets/moods/calm.jpg'),
   },
-
-{
-    id: 4,
-    title: 'Nugas Coding Semalaman',
-    date: '2025-10-07',
-    preview: 'Akhirnya beres juga bikin project web dan benerin bug seharian penuh...',
-    body: 'Akhirnya beres juga bikin project web dan benerin bug styling seharian penuh. Sekarang waktunya istirahat sambil nonton beberapa episode anime favorit buat refreshing otak sebelum lanjut nugas lagi besok.',
-    moodUri: 'https://picsum.photos/seed/code/200',
-    heroUri: 'https://picsum.photos/seed/codehero/800/450',
-  },
-  {
-    id: 5,
-    title: 'Ngopi Sore Cari Inspirasi',
-    date: '2025-10-08',
-    preview: 'Nemu kedai kopi yang asik banget buat ngerjain tugas. Vibe-nya tenang...',
-    body: 'Nemu kedai kopi yang asik banget buat ngerjain tugas. Vibe-nya tenang, kopinya mantap, cocok banget buat nyari inspirasi pas lagi stuck nulis kode atau ngerancang database.',
-    moodUri: 'https://picsum.photos/seed/coffee/200',
-    heroUri: 'https://picsum.photos/seed/coffeehero/800/450',
-  }
-
-
 ];
 
-
 export default function DiaryListScreen() {
-  const { width } = useWindowDimensions();
-  const twoCols = width >= BREAKPOINTS.tablet;
+  const [entries, setEntries] = useState(INITIAL_ENTRIES);
+  const [query, setQuery] = useState('');
+  const [likedIds, setLikedIds] = useState(new Set());
   const [selected, setSelected] = useState(null);
 
-  const keyForCols = useMemo(() => (twoCols ? 'grid2' : 'list1'), [twoCols]);
+  const filtered = useMemo(() => {
+    if (!query.trim()) return entries;
+    const q = query.toLowerCase();
+    return entries.filter((entry) =>
+      entry.title.toLowerCase().includes(q) ||
+      entry.preview.toLowerCase().includes(q) ||
+      entry.date.toLowerCase().includes(q)
+    );
+  }, [entries, query]);
+
+  const toggleLike = (id) => {
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const addEntry = (newEntry) => {
+    setEntries((prev) => [newEntry, ...prev]);
+  };
 
   const renderItem = ({ item }) => (
-    <View style={[styles.itemWrap, twoCols && styles.itemWrap2]}>
-      <DiaryCard
-        title={item.title}
-        date={item.date}
-        preview={item.preview}
-        moodUri={item.moodUri}
-        variant={twoCols ? 'grid' : 'list'}
-        onPress={() => setSelected(item)}
-      />
-    </View>
+    <DiaryCard
+      title={item.title}
+      date={item.date}
+      preview={item.preview}
+      moodImage={item.moodImage}
+      liked={likedIds.has(item.id)}
+      onToggleLike={() => toggleLike(item.id)}
+      onPress={() => setSelected(item)}
+    />
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Buku Harian</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Buku Harian</Text>
+        <Text style={styles.headerSubtitle}>Catat momen pentingmu hari ini</Text>
+      </View>
+      
+      <SearchBar onChange={setQuery} />
+      <EntryForm onSubmit={addEntry} />
       
       <FlatList
-        key={keyForCols}
-        data={DATA}
-        numColumns={twoCols ? 2 : 1}
-        keyExtractor={(it) => String(it.id)}
+        data={filtered}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
-        columnWrapperStyle={twoCols ? { gap: SPACE.m } : undefined}
-        contentContainerStyle={{
-          padding: SPACE.l,
-          gap: SPACE.m,
-          paddingTop: SPACE.m,
-        }}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <Text style={styles.empty}>Belum ada entri.</Text>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="book-outline" size={56} color={'#cbd5e1'} />
+            <Text style={styles.emptyText}>Belum ada entri diary nih.</Text>
+            <Text style={styles.emptySubText}>Yuk, mulai nulis cerita pertamamu!</Text>
+          </View>
         }
       />
-
       <DiaryDetailModal
         visible={!!selected}
         entry={selected}
@@ -107,25 +111,52 @@ export default function DiaryListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.background 
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background, 
   },
-  header: {
-    fontFamily: FONTS.bold,
-    fontSize: TYPO.h1,
+  headerContainer: {
     paddingHorizontal: SPACE.l,
     paddingTop: SPACE.l,
     paddingBottom: SPACE.s,
-    color: COLORS.text,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
-  itemWrap: { flex: 1 },
-  itemWrap2: { flex: 1 / 2 },
-  empty: { 
-    fontFamily: FONTS.regular,
-    textAlign: 'center', 
-    color: COLORS.muted, 
-    marginTop: 40,
-    fontSize: TYPO.body 
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: COLORS.accent, // Aksen Biru Persib
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: COLORS.muted,
+    marginTop: 2,
+  },
+  listContent: {
+    padding: SPACE.l,
+    gap: 16,
+    paddingBottom: 40, // Biar pas di-scroll ke bawah nggak kepotong layarnya
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: 16,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: COLORS.muted,
+    marginTop: 8,
   },
 });
